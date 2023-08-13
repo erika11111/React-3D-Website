@@ -20,10 +20,19 @@ import {
 } from "webgi";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { scrollAnimation } from "../lib/sroll-animation";
+
+gsap.registerPlugin(ScrollTrigger);
 
 function WebgiViewer() {
   const canvasRef = useRef(null);
 
+  //cache'ing the animation, so it is not repeated every render
+  const memorizedScrollAnimation = useCallback((position, target, onUpdate) => {
+    if (position && target && onUpdate) {
+      scrollAnimation(position, target, onUpdate);
+    }
+  }, []);
   const setupViewer = useCallback(async () => {
     // Initialize the viewer
     const viewer = new ViewerApp({
@@ -60,16 +69,25 @@ function WebgiViewer() {
 
     //update the position of camera
     let needsUpdate = true;
+
+    //camera and the viewer needs to be updated
+    const onUpdate = () => {
+      needsUpdate = true;
+      viewer.setDirty();
+    };
+
     viewer.addEventListener("preFrame", () => {
       if (needsUpdate) {
         camera.positionTargetUpdated(true);
         needsUpdate = false;
       }
     });
+    memorizedScrollAnimation(position, target, onUpdate);
   }, []);
+
   useEffect(() => {
     setupViewer();
-  });
+  }, []);
   return (
     <div id="webgi-canvas-container">
       <canvas id="webgi-canvas" ref={canvasRef}></canvas>
