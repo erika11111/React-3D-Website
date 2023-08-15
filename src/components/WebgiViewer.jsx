@@ -35,6 +35,8 @@ const WebgiViewer = forwardRef((props, ref) => {
   //3d animation preview
   useImperativeHandle(ref, () => ({
     triggerPreview() {
+      props.contentRef.current.style.opacity = "0";
+
       gsap.to(positionRef, {
         x: 13.04,
         y: -2.01,
