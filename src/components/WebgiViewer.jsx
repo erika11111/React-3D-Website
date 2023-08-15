@@ -31,10 +31,11 @@ const WebgiViewer = forwardRef((props, ref) => {
   const [targetRef, setTargetRef] = useState(null);
   const [cameraRef, setCameraRef] = useState(null);
   const [positionRef, setPositionRef] = useState(null);
-
+  const canvasContainerRef = useRef(null);
   //3d animation preview
   useImperativeHandle(ref, () => ({
     triggerPreview() {
+      canvasContainerRef.current.style.pointerEvents = "all";
       props.contentRef.current.style.opacity = "0";
 
       gsap.to(positionRef, {
@@ -53,6 +54,7 @@ const WebgiViewer = forwardRef((props, ref) => {
         z: 0.0,
         duration: 2,
       });
+      viewerRef.scene.activeCamera.setCameraOptions({ controlsEnabled: true });
     },
   }));
   //cache'ing the animation, so it is not repeated every render
@@ -123,7 +125,7 @@ const WebgiViewer = forwardRef((props, ref) => {
     setupViewer();
   }, []);
   return (
-    <div id="webgi-canvas-container">
+    <div ref={canvasContainerRef} id="webgi-canvas-container">
       <canvas id="webgi-canvas" ref={canvasRef}></canvas>
     </div>
   );
