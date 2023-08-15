@@ -24,9 +24,35 @@ import { scrollAnimation } from "../lib/sroll-animation";
 
 gsap.registerPlugin(ScrollTrigger);
 
-function WebgiViewer() {
+const WebgiViewer = forwardRef((props, ref) => {
   const canvasRef = useRef(null);
+  //3d animation preview variables
+  const [viewerRef, setViewerRef] = useState(null);
+  const [targetRef, setTargetRef] = useState(null);
+  const [cameraRef, setCameraRef] = useState(null);
+  const [positionRef, setPositionRef] = useState(null);
 
+  //3d animation preview
+  useImperativeHandle(ref, () => ({
+    triggerPreview() {
+      gsap.to(positionRef, {
+        x: 13.04,
+        y: -2.01,
+        z: 2.29,
+        duration: 2,
+        onUpdate: () => {
+          viewerRef.setDirty();
+          cameraRef.positionTargetUpdated(true);
+        },
+      });
+      gsap.to(targetRef, {
+        x: 0.11,
+        y: 0.0,
+        z: 0.0,
+        duration: 2,
+      });
+    },
+  }));
   //cache'ing the animation, so it is not repeated every render
   const memorizedScrollAnimation = useCallback((position, target, onUpdate) => {
     if (position && target && onUpdate) {
@@ -39,12 +65,18 @@ function WebgiViewer() {
       canvas: canvasRef.current,
     });
 
+    setViewerRef(viewer);
+
     // Add some plugins
     const manager = await viewer.addPlugin(AssetManagerPlugin);
 
     const camera = viewer.scene.activeCamera;
     const position = camera.position;
     const target = camera.target;
+    //storing reference to variables
+    setCameraRef(camera);
+    setPositionRef(position);
+    setTargetRef(target);
     // Add plugins individually.
     await viewer.addPlugin(GBufferPlugin);
     await viewer.addPlugin(new ProgressivePlugin(32));
@@ -93,5 +125,5 @@ function WebgiViewer() {
       <canvas id="webgi-canvas" ref={canvasRef}></canvas>
     </div>
   );
-}
+});
 export default WebgiViewer;
